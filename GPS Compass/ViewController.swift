@@ -32,7 +32,21 @@ class ViewController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        locationManager.requestAlwaysAuthorization()
+        if CLLocationManager.locationServicesEnabled() {
+            locationManager.delegate = self
+            let status = locationManager.authorizationStatus
+            if status == .notDetermined {
+                locationManager.requestAlwaysAuthorization()
+            } else if status == .authorizedAlways || status == .authorizedWhenInUse {
+                locationManager.startUpdatingLocation()
+            } else {
+                // Handle case where location services are denied
+                displayErrorAlert(message: "Location services are not authorized.")
+            }
+        } else {
+            // Handle case where location services are not enabled
+            displayErrorAlert(message: "Location services are not enabled.")
+        }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -89,56 +103,48 @@ class ViewController: UIViewController {
     }
 
     func startDeviceMotionUpdates() {
-        if motionManager.isDeviceMotionAvailable {
-            motionManager.deviceMotionUpdateInterval = 0.01
-            motionManager.startDeviceMotionUpdates(to: .main) { [weak self] (motion, error) in
-                guard let self = self, let motion = motion, error == nil else {
-                    print("Error updating device motion: \(error?.localizedDescription ?? "Unknown error")")
-                    return
-                }
+            if motionManager.isDeviceMotionAvailable {
+                motionManager.deviceMotionUpdateInterval = 0.01
+                motionManager.startDeviceMotionUpdates(to: .main) { [weak self] (motion, error) in
+                    guard let self = self else { return }
 
-                // Check if heading and location data are available
-                guard let heading = self.locationManager.heading?.trueHeading,
-                      let destinationCoord = self.destinationCoordinate,
-                      let myCoord = self.myCoordinates else {
-                    print("Location or heading data is nil.")
-                    
-                    if let heading = self.locationManager.heading {
-                        print("Heading data: \(heading)")
-                    }
-                    
-                    if let destinationCoord = self.destinationCoordinate {
-                        print("Destination Coordinate data: \(destinationCoord)")
-                    }
-                    
-                    if let myCoord = self.myCoordinates {
-                        print("My Coordinate data: \(myCoord)")
+                    if let error = error {
+                        print("Error updating device motion: \(error.localizedDescription)")
+                        return
                     }
 
-                    return
-                }
+                    guard let motion = motion else {
+                        print("Motion data is nil.")
+                        return
+                    }
 
-                // Check if the initialNorthAngle needs to be calculated
-                if self.initialNorthAngle == 0.0 {
-                    self.initialNorthAngle = self.calculateAngleFromNorth(heading: heading, destinationCoord: destinationCoord, myCoord: myCoord)
-                }
+                    // Check if heading and location data are available
+                    guard let heading = self.locationManager.heading?.trueHeading,
+                          let destinationCoord = self.destinationCoordinate,
+                          let myCoord = self.myCoordinates else {
+                        print("Location or heading data is nil.")
+                        return
+                    }
 
-                let angleFromNorth = self.calculateAngleFromNorth(heading: heading, destinationCoord: destinationCoord, myCoord: myCoord)
-                let adjustedAngle = angleFromNorth - self.initialNorthAngle
-                self.updateArrowRotation(adjustedAngle: adjustedAngle)
+                    let bearing = self.calculateBearing(from: myCoord, to: destinationCoord)
+                    let angleFromNorth = bearing - CGFloat(heading)
+                    self.updateArrowRotation(adjustedAngle: angleFromNorth)
+                }
+            } else {
+                print("Device motion is not available")
             }
-        } else {
-            print("Device motion is not available")
         }
-    }
-
 
     func updateArrowRotation(adjustedAngle: CGFloat) {
+        // Convert degrees to radians
+        let rotationAngleInRadians = adjustedAngle * CGFloat.pi / 180.0
+
         print("Adjusted Angle: \(adjustedAngle)")
-        let rotationTransform = CGAffineTransform(rotationAngle: adjustedAngle)
+        print("Rotation Angle (Radians): \(rotationAngleInRadians)")
+
+        let rotationTransform = CGAffineTransform(rotationAngle: rotationAngleInRadians)
         arrowImageView.transform = rotationTransform
     }
-
 }
 
 extension ViewController: UITextFieldDelegate {
@@ -175,17 +181,33 @@ extension ViewController: CLLocationManagerDelegate {
                                                                   destinationCoord: destinationCoord,
                                                                   myCoord: myCoord)
         }
-    }
 
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        print("Location manager error: \(error.localizedDescription)")
+        print("Updated location: \(location)")
+        print("Updated destinationCoord: \(destinationCoord)")
+        print("Updated myCoord: \(myCoord)")
     }
 }
 
 extension ViewController {
+    func calculateBearing(from sourceCoordinate: CLLocationCoordinate2D, to destinationCoordinate: CLLocationCoordinate2D) -> CLLocationDirection {
+        let lat1 = sourceCoordinate.latitude.toRadians()
+        let lon1 = sourceCoordinate.longitude.toRadians()
+        let lat2 = destinationCoordinate.latitude.toRadians()
+        let lon2 = destinationCoordinate.longitude.toRadians()
+
+        let deltaLon = lon2 - lon1
+
+        let x = sin(deltaLon) * cos(lat2)
+        let y = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(deltaLon)
+
+        let bearing = atan2(x, y)
+
+        return bearing.toDegrees().normalizedDegree()
+    }
+
     func calculateAngleFromNorth(heading: CLLocationDirection, destinationCoord: CLLocationCoordinate2D, myCoord: CLLocationCoordinate2D) -> CGFloat {
-        let angleToDestination = calculateAngle(from: myCoord, to: destinationCoord)
-        let angleFromNorth = angleToDestination - CGFloat(heading)
+        let bearing = self.calculateBearing(from: myCoord, to: destinationCoord)
+        let angleFromNorth = bearing - CGFloat(heading)
         return angleFromNorth
     }
 
@@ -198,5 +220,21 @@ extension ViewController {
         let positiveAngle = (angleInDegrees + 360).truncatingRemainder(dividingBy: 360)
 
         return positiveAngle
+    }
+}
+
+extension Double {
+    func toRadians() -> Double {
+        return self * .pi / 180.0
+    }
+
+    func toDegrees() -> Double {
+        return self * 180.0 / .pi
+    }
+}
+
+extension CLLocationDirection {
+    func normalizedDegree() -> CLLocationDirection {
+        return (self + 360.0).truncatingRemainder(dividingBy: 360.0)
     }
 }
