@@ -6,6 +6,4 @@ How should it work?
   3. Then, an arrow should show up that will lead your way to your destination.
 
 Future plans: 
-  - adding altitude (it will display under the arrow)
   - settings for different colours and schemes of arrow
-  - maybe distance to the target ??
