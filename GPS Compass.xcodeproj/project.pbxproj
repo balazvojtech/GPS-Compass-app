@@ -13,6 +13,7 @@
 		191FBCAB2B4334B500FD5D64 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 191FBCA92B4334B500FD5D64 /* Main.storyboard */; };
 		191FBCAD2B4334B600FD5D64 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 191FBCAC2B4334B600FD5D64 /* Assets.xcassets */; };
 		191FBCB02B4334B600FD5D64 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 191FBCAE2B4334B600FD5D64 /* LaunchScreen.storyboard */; };
+		19C170B42B49596A0047059E /* CityListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19C170B32B4959690047059E /* CityListViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +25,7 @@
 		191FBCAC2B4334B600FD5D64 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		191FBCAF2B4334B600FD5D64 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		191FBCB12B4334B600FD5D64 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		19C170B32B4959690047059E /* CityListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CityListViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,6 +58,7 @@
 		191FBCA22B4334B500FD5D64 /* GPS Compass */ = {
 			isa = PBXGroup;
 			children = (
+				19C170B32B4959690047059E /* CityListViewController.swift */,
 				191FBCA32B4334B500FD5D64 /* AppDelegate.swift */,
 				191FBCA52B4334B500FD5D64 /* SceneDelegate.swift */,
 				191FBCA72B4334B500FD5D64 /* ViewController.swift */,
@@ -141,6 +144,7 @@
 				191FBCA82B4334B500FD5D64 /* ViewController.swift in Sources */,
 				191FBCA42B4334B500FD5D64 /* AppDelegate.swift in Sources */,
 				191FBCA62B4334B500FD5D64 /* SceneDelegate.swift in Sources */,
+				19C170B42B49596A0047059E /* CityListViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
