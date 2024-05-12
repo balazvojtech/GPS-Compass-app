@@ -5,5 +5,4 @@ How should it work?
   2. Upon entering your coordinates, you can press "Confirm" without getting any error.
   3. Then, an arrow should show up that will lead your way to your destination.
 
-Future plans: 
-  - settings for different colours and schemes of arrow
+NO FUTURE PLANS (as for now) - development CANCELLED
